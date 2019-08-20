@@ -2,6 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:notes/enums/note_token.dart';
 import 'package:notes/widgets/note_style_toolbar.dart';
 
+// TODO: remove
+const TEMP_TEXT = '''
+# welcome to life
+% things that I care
+    x things that I've done already
+        details
+    - things that I need to do soon
+    ? things that I've considered but am not sure about yet
+    ~ things that are partially done but likely await some external force before being completed
+    ! things that are important
+    !! things that are very important
+''';
+
 class NoteEditorScreen extends StatefulWidget {
   NoteEditorScreen({Key key}) : super(key: key);
 
@@ -9,7 +22,7 @@ class NoteEditorScreen extends StatefulWidget {
 }
 
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
-  final _textEditingController = TextEditingController();
+  final _textEditingController = TextEditingController(text: TEMP_TEXT);
 
   // TODO: consider hiding the status bar in horizontal orientation
   @override
@@ -23,6 +36,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 // TODO: find a way to highlight the current line
+                // TODO: preserve indentation
                 child: TextField(
                   controller: _textEditingController,
                   decoration: InputDecoration(
@@ -38,10 +52,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             Padding(
               padding: EdgeInsets.only(
                 // TODO: make some shorter way of querying this: https://pub.dev/packages/keyboard_visibility
-                // TODO: do I want the padding in horizontal mode?
                 bottom: MediaQuery.of(context).viewInsets.bottom == 0 ? 8.0 : 0,
               ),
-              // TODO: ? maybe, still not sure, have the current lines token highlighted already...
               child: NoteStyleToolbar(
                 onNoteTokenPressed: (NoteToken noteToken) {
                   insertText(NoteTokenHelper.getName(noteToken) + " ");
@@ -58,6 +70,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   // TODO: cleanup code
   // TODO: I actually want to insert at the beginning of the line, and replace the existing prefix
+  // TODO: fix cursor position when inserting at the very beginning
   void insertText(String text) {
     var value = _textEditingController.value;
     var start = value.selection.baseOffset;
@@ -81,8 +94,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         _textEditingController.value = value.copyWith(
             text: newText,
             selection: value.selection.copyWith(
-                baseOffset: end + text.length,
-                extentOffset: end + text.length));
+                baseOffset: end + text.length - (end - start),
+                extentOffset: end + text.length - (end - start)));
       });
     }
   }

@@ -9,6 +9,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Notes',
       theme: ThemeData(
+        fontFamily: 'RobotoMono',
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Color(0xFF272822),
         textTheme: Theme.of(context).textTheme.copyWith(
