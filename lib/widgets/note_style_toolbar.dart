@@ -4,6 +4,7 @@ import 'package:notes/widgets/note_style_button.dart';
 
 typedef NoteTokenCallback = void Function(NoteToken noteToken);
 
+// TODO: maybe rename to NoteTokenToolbar?
 class NoteStyleToolbar extends StatelessWidget {
   final NoteTokenCallback onNoteTokenPressed;
 
