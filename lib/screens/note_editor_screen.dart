@@ -56,9 +56,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               ),
               child: NoteStyleToolbar(
                 onNoteTokenPressed: (NoteToken noteToken) {
-                  insertText(NoteTokenHelper.getName(noteToken) + " ");
-                  // TODO: this will change/toggle the note token for the current line OR all selected lines
-                  print("=============" + NoteTokenHelper.getName(noteToken));
+                  var prefix = NoteTokenHelper.getName(noteToken) + " ";
+                  toggleReplacementLinePrefixes(prefix);
                 },
               ),
             ),
@@ -68,36 +67,104 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     );
   }
 
-  // TODO: cleanup code
-  // TODO: I actually want to insert at the beginning of the line, and replace the existing prefix
-  // TODO: fix cursor position when inserting at the very beginning
-  void insertText(String text) {
-    var value = _textEditingController.value;
-    var start = value.selection.baseOffset;
-    var end = value.selection.extentOffset;
-    if (value.selection.isValid) {
-      String newText = "";
-      if (value.selection.isCollapsed) {
-        if (end > 0) {
-          newText += value.text.substring(0, end);
-        }
-        newText += text;
-        if (value.text.length > end) {
-          newText += value.text.substring(end, value.text.length);
+  // TODO: test test test
+  // TODO: decide if it's readonable to toggle the prefixes line by line, or if all should be toggled as one (ie. for prefixes which match an existing prefix)
+  void toggleReplacementLinePrefixes(String prefix) {
+    final value = _textEditingController.value;
+    if (!value.selection.isValid) {
+      return;
+    }
+
+    final start = value.selection.start;
+    final end = value.selection.end;
+    var newText = value.text;
+    var newStart = start;
+    var newEnd = end;
+
+    // TODO: starting from the end of the selection until past the start of the selection
+    var index = end;
+    while (index >= start) {
+      // TODO: consider if we have CR's... (check how flutter on windows/web handles things) (regardless we need to be able to open files with CRLF) (actually, it should probablt just be fine, so long as we don't have just CR on it's own, fuckin' legacy macs)
+      // find the lastIndexOf NL character pattern OR the beginning of the string
+      // NOTE: because of how we're doing things, and the fact that lastIndexOf return -1 on no match, the math just works out fine at the beginning of the string, but if we change that math, we may need to handle -1 from lastIndexOf specially
+      var indexOfNewline = value.text.lastIndexOf(RegExp(r'(\n)'), index);
+      // TODO: pretty sure the -1 is required to prevent extra looping
+      index = indexOfNewline - 1;
+
+      // TODO: is it even possible to get null now? basically just with bugs
+      // TODO: don't think the +1 is okay for the beginning...
+      // TODO: make this matching smarter
+      // if the character range starting after the newline startsWith an existing prefix:
+      final tokenMatchRegex = RegExp(r'([ ]*)([x\-\?~!#%] |!! )?');
+      var match = tokenMatchRegex.matchAsPrefix(value.text, index + 2);
+      var existingPrefix = match[2];
+      if (existingPrefix != null && existingPrefix.length != 0) {
+        // if it also starts with the same prefix as the replacement prefix
+        if (prefix == existingPrefix) {
+          // remove the prefix
+          newText = newText.replaceRange(
+              match.end - existingPrefix.length, match.end, '');
+          // if selection ends after the changed region, subtract existingPrefix.length from end
+          if (newEnd >= match.end) {
+            newEnd -= existingPrefix.length;
+          }
+          // else if selection ends in the middle of the prefix, move end to where the prefix previously began
+          else if (newEnd > match.end - existingPrefix.length) {
+            newEnd = match.end - existingPrefix.length;
+          }
+          // if selection starts after the changed region, subtract existingPrefix.length from start
+          if (newStart >= match.end) {
+            newStart -= existingPrefix.length;
+          }
+          // else if selection starts in the middle of the prefix, move start to where the prefix previously began
+          else if (newStart > match.end - existingPrefix.length) {
+            newStart = match.end - existingPrefix.length;
+          }
+        } else {
+          // replace the existing prefix with the new one
+          newText = newText.replaceRange(
+              match.end - existingPrefix.length, match.end, prefix);
+          // TODO: for this & next selection changes, try to preserve within prefix when simply changing the prefix
+          // if selection ends after the changed region, subtract existingPrefix.length from end
+          if (newEnd >= match.end) {
+            newEnd -= (existingPrefix.length - prefix.length);
+          }
+          // else if selection ends in the middle of the prefix, move end to where the prefix previously began
+          else if (newEnd > match.end - existingPrefix.length) {
+            newEnd = match.end - (existingPrefix.length - prefix.length);
+          }
+          // if selection starts after the changed region, subtract existingPrefix.length from start
+          if (newStart >= match.end) {
+            newStart -= (existingPrefix.length - prefix.length);
+          }
+          // else if selection starts in the middle of the prefix, move start to where the prefix previously began
+          else if (newStart > match.end - existingPrefix.length) {
+            newStart = match.end - (existingPrefix.length - prefix.length);
+          }
         }
       } else {
-        newText = value.text.replaceRange(start, end, text);
+        // insert the new prefix
+        newText = newText.replaceRange(match.end, match.end, prefix);
+        // if selection ends at the leading whitespace, add the prefix.length to the end
+        if (newEnd >= match.end) {
+          newEnd += prefix.length;
+        }
+        // if selection starts at the leading whitespace, add the prefix.length to the start
+        if (newStart >= match.end) {
+          newStart += prefix.length;
+        }
       }
-
-      setState(() {
-        //FocusScope.of(context).requestFocus(_focusNode);
-        _textEditingController.value = value.copyWith(
-            text: newText,
-            selection: value.selection.copyWith(
-                baseOffset: end + text.length - (end - start),
-                extentOffset: end + text.length - (end - start)));
-      });
     }
+
+    setState(() {
+      _textEditingController.value = value.copyWith(
+        text: newText,
+        selection: value.selection.copyWith(
+          baseOffset: newStart,
+          extentOffset: newEnd,
+        ),
+      );
+    });
   }
 
   @override
