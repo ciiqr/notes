@@ -88,6 +88,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       // find the lastIndexOf NL character pattern OR the beginning of the string
       // NOTE: because of how we're doing things, and the fact that lastIndexOf return -1 on no match, the math just works out fine at the beginning of the string, but if we change that math, we may need to handle -1 from lastIndexOf specially
       var indexOfNewline = value.text.lastIndexOf(RegExp(r'(\n)'), index);
+      // TODO: there's a probably a less dumb way of doing this
+      // make sure toggling when on the end of a line toggles that line not the next
+      if (index == indexOfNewline) {
+        indexOfNewline = value.text.lastIndexOf(RegExp(r'(\n)'), index - 1);
+      }
       // TODO: pretty sure the -1 is required to prevent extra looping
       index = indexOfNewline - 1;
 
