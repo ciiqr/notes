@@ -44,61 +44,58 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 padding: const EdgeInsets.all(8),
                 // TODO: find a way to highlight the current line
                 // TODO: preserve indentation
-                child: TextField(
-                  controller: _textEditingController,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(0),
-                  ),
-                  keyboardType: TextInputType.multiline,
-                  maxLines: null,
-                  expands: true,
-                  onChanged: (t) {
-                    // keep code text up to date
-                    _codeEditingController.value =
-                        _codeEditingController.value.copyWith(
-                      value: NoteHighlighter().buildSpan(t),
-                    );
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 1,
-              child: const DecoratedBox(
-                decoration: const BoxDecoration(color: Colors.red),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                // TODO: find a way to highlight the current line
-                // TODO: preserve indentation
-                // TODO: why are newlines appended to the text after every change?
-                // TODO: why doesn't selection work?
-                // TODO: can I get toggles working
-                child: CodeTextField(
-                  controller: _codeEditingController,
-                  highlighter: NoteHighlighter(),
-                  onChanged: (t) {
-                    // keep plain text up to date
-                    _textEditingController.value =
-                        _textEditingController.value.copyWith(
-                      text: t,
-                    );
-                  },
-                  maxLines: null,
-                  decoration: null,
-                  enableInteractiveSelection: true,
-                  // style: TextStyle(
-                  //   fontSize: 20.0,
-                  //   color: Colors.red,
-                  //   fontFamily: 'RobotoMono',
-                  // ),
-                  // style: Theme.of(context)
-                  //     .textTheme
-                  //     .subhead
-                  //     .copyWith(fontFamily: "RobotoMono"),
+                child: Stack(
+                  children: [
+                    TextField(
+                      controller: _textEditingController,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(0),
+                      ),
+                      keyboardType: TextInputType.multiline,
+                      maxLines: null,
+                      expands: true,
+                      onChanged: (t) {
+                        // keep code text up to date
+                        _codeEditingController.value =
+                            _codeEditingController.value.copyWith(
+                          value: NoteHighlighter().buildSpan(t),
+                        );
+                      },
+                    ),
+                    // TODO: find a way to highlight the current line
+                    // TODO: preserve indentation
+                    // TODO: why are newlines appended to the text after every change?
+                    // TODO: why doesn't selection work?
+                    // TODO: can I get toggles working
+                    // NOTE: this is really dumb, but for now works surprisingly well
+                    // TODO: if keeping this, must fix selected text colour, sync scrolling
+                    IgnorePointer(
+                      child: CodeTextField(
+                        controller: _codeEditingController,
+                        highlighter: NoteHighlighter(),
+                        onChanged: (t) {
+                          // keep plain text up to date
+                          _textEditingController.value =
+                              _textEditingController.value.copyWith(
+                            text: t,
+                          );
+                        },
+                        maxLines: null,
+                        decoration: null,
+                        enableInteractiveSelection: true,
+                        // style: TextStyle(
+                        //   fontSize: 20.0,
+                        //   color: Colors.red,
+                        //   fontFamily: 'RobotoMono',
+                        // ),
+                        // style: Theme.of(context)
+                        //     .textTheme
+                        //     .subhead
+                        //     .copyWith(fontFamily: "RobotoMono"),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
