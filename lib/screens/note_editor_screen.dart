@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:notes/enums/note_token.dart';
+import 'package:notes/syntax/note_highlighter.dart';
 import 'package:notes/widgets/note_style_toolbar.dart';
+import 'package:rich_code_editor/rich_code_editor.dart';
 
 // TODO: remove
 const TEMP_TEXT = '''
@@ -9,8 +11,8 @@ const TEMP_TEXT = '''
     x things that I've done already
         details
     - things that I need to do soon
-    ? things that I've considered but am not sure about yet
-    ~ things that are partially done but likely await some external force before being completed
+    ? things that I've considered
+    ~ things that are partially done
     ! things that are important
     !! things that are very important
 ''';
@@ -23,8 +25,13 @@ class NoteEditorScreen extends StatefulWidget {
 
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
   final _textEditingController = TextEditingController(text: TEMP_TEXT);
+  final _codeEditingController = CodeEditingController(
+    // TODO: why this damn highlighter
+    textSpan: NoteHighlighter().buildSpan(TEMP_TEXT),
+  );
 
   // TODO: consider hiding the status bar in horizontal orientation
+  // TODO: would be cool if pressing and holding the token buttons would enable that one and auto apply it to all newlines
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,6 +53,52 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                   keyboardType: TextInputType.multiline,
                   maxLines: null,
                   expands: true,
+                  onChanged: (t) {
+                    // keep code text up to date
+                    _codeEditingController.value =
+                        _codeEditingController.value.copyWith(
+                      value: NoteHighlighter().buildSpan(t),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 1,
+              child: const DecoratedBox(
+                decoration: const BoxDecoration(color: Colors.red),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                // TODO: find a way to highlight the current line
+                // TODO: preserve indentation
+                // TODO: why are newlines appended to the text after every change?
+                // TODO: why doesn't selection work?
+                // TODO: can I get toggles working
+                child: CodeTextField(
+                  controller: _codeEditingController,
+                  highlighter: NoteHighlighter(),
+                  onChanged: (t) {
+                    // keep plain text up to date
+                    _textEditingController.value =
+                        _textEditingController.value.copyWith(
+                      text: t,
+                    );
+                  },
+                  maxLines: null,
+                  decoration: null,
+                  enableInteractiveSelection: true,
+                  // style: TextStyle(
+                  //   fontSize: 20.0,
+                  //   color: Colors.red,
+                  //   fontFamily: 'RobotoMono',
+                  // ),
+                  // style: Theme.of(context)
+                  //     .textTheme
+                  //     .subhead
+                  //     .copyWith(fontFamily: "RobotoMono"),
                 ),
               ),
             ),
@@ -162,6 +215,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     }
 
     setState(() {
+      _codeEditingController.value = _codeEditingController.value.copyWith(
+        value: NoteHighlighter().buildSpan(newText),
+      );
       _textEditingController.value = value.copyWith(
         text: newText,
         selection: value.selection.copyWith(
