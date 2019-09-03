@@ -30,6 +30,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     textSpan: NoteHighlighter().buildSpan(TEMP_TEXT),
   );
 
+  final _textScrollController = ScrollController();
+  final _codeScrollController = ScrollController();
+
   // TODO: consider hiding the status bar in horizontal orientation
   // TODO: would be cool if pressing and holding the token buttons would enable that one and auto apply it to all newlines
   @override
@@ -40,17 +43,25 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                // TODO: find a way to highlight the current line
-                // TODO: preserve indentation
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  // scroll code to text offset
+                  if (notification is ScrollUpdateNotification) {
+                    _codeScrollController.jumpTo(_textScrollController.offset);
+                  }
+
+                  // don't stop propogation
+                  return false;
+                },
                 child: Stack(
                   children: [
                     TextField(
                       controller: _textEditingController,
+                      scrollController: _textScrollController,
+                      // TODO: this MUST be the same as the other widget, also note, we add the padding here so we can still tap on the very edge to bring up the keyboard
                       decoration: InputDecoration(
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(0),
+                        contentPadding: const EdgeInsets.all(8),
                       ),
                       keyboardType: TextInputType.multiline,
                       maxLines: null,
@@ -62,6 +73,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                           value: NoteHighlighter().buildSpan(t),
                         );
                       },
+                      // NOTE: we hide the text since sometimes the edges show through (not sure why, it's pretty rare, but I've seen it)
+                      style: Theme.of(context).textTheme.subhead.copyWith(
+                            color: Colors.transparent,
+                          ),
                     ),
                     // TODO: find a way to highlight the current line
                     // TODO: preserve indentation
@@ -73,6 +88,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                     IgnorePointer(
                       child: CodeTextField(
                         controller: _codeEditingController,
+                        scrollController: _codeScrollController,
                         highlighter: NoteHighlighter(),
                         onChanged: (t) {
                           // keep plain text up to date
@@ -82,7 +98,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                           );
                         },
                         maxLines: null,
-                        decoration: null,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(8),
+                        ),
                         enableInteractiveSelection: true,
                         // style: TextStyle(
                         //   fontSize: 20.0,
