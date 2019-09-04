@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:notes/enums/note_token.dart';
 import 'package:notes/syntax/note_highlighter.dart';
 import 'package:notes/widgets/note_style_toolbar.dart';
@@ -33,103 +34,112 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   final _textScrollController = ScrollController();
   final _codeScrollController = ScrollController();
 
-  // TODO: consider hiding the status bar in horizontal orientation
   // TODO: would be cool if pressing and holding the token buttons would enable that one and auto apply it to all newlines
   // TODO: find a way to highlight the current line
   // TODO: preserve indentation
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Expanded(
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (notification) {
-                  // scroll code to text offset
-                  if (notification is ScrollUpdateNotification) {
-                    _codeScrollController.jumpTo(_textScrollController.offset);
-                  }
+    return OrientationBuilder(
+        builder: (BuildContext context, Orientation orientation) {
+      if (orientation == Orientation.landscape) {
+        SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
+      } else {
+        SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+      }
+      return Scaffold(
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Expanded(
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    // scroll code to text offset
+                    if (notification is ScrollUpdateNotification) {
+                      _codeScrollController
+                          .jumpTo(_textScrollController.offset);
+                    }
 
-                  // don't stop propogation
-                  return false;
-                },
-                child: Stack(
-                  children: [
-                    TextField(
-                      controller: _textEditingController,
-                      scrollController: _textScrollController,
-                      // TODO: this MUST be the same as the other widget, also note, we add the padding here so we can still tap on the very edge to bring up the keyboard
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(8),
-                      ),
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                      expands: true,
-                      onChanged: (t) {
-                        // keep code text up to date
-                        _codeEditingController.value =
-                            _codeEditingController.value.copyWith(
-                          value: NoteHighlighter().buildSpan(t),
-                        );
-                      },
-                      // NOTE: we hide the text since sometimes the edges show through (not sure why, it's pretty rare, but I've seen it)
-                      style: Theme.of(context).textTheme.subhead.copyWith(
-                            color: Colors.transparent,
-                          ),
-                    ),
-                    // NOTE: this is really dumb, but for now works surprisingly well
-                    IgnorePointer(
-                      child: CodeTextField(
-                        controller: _codeEditingController,
-                        scrollController: _codeScrollController,
-                        highlighter: NoteHighlighter(),
-                        onChanged: (t) {
-                          // keep plain text up to date
-                          _textEditingController.value =
-                              _textEditingController.value.copyWith(
-                            text: t,
-                          );
-                        },
-                        maxLines: null,
+                    // don't stop propogation
+                    return false;
+                  },
+                  child: Stack(
+                    children: [
+                      TextField(
+                        controller: _textEditingController,
+                        scrollController: _textScrollController,
+                        // TODO: this MUST be the same as the other widget, also note, we add the padding here so we can still tap on the very edge to bring up the keyboard
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.all(8),
                         ),
-                        enableInteractiveSelection: true,
-                        // style: TextStyle(
-                        //   fontSize: 20.0,
-                        //   color: Colors.red,
-                        //   fontFamily: 'RobotoMono',
-                        // ),
-                        // style: Theme.of(context)
-                        //     .textTheme
-                        //     .subhead
-                        //     .copyWith(fontFamily: "RobotoMono"),
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        expands: true,
+                        onChanged: (t) {
+                          // keep code text up to date
+                          _codeEditingController.value =
+                              _codeEditingController.value.copyWith(
+                            value: NoteHighlighter().buildSpan(t),
+                          );
+                        },
+                        // NOTE: we hide the text since sometimes the edges show through (not sure why, it's pretty rare, but I've seen it)
+                        style: Theme.of(context).textTheme.subhead.copyWith(
+                              color: Colors.transparent,
+                            ),
                       ),
-                    ),
-                  ],
+                      // NOTE: this is really dumb, but for now works surprisingly well
+                      IgnorePointer(
+                        child: CodeTextField(
+                          controller: _codeEditingController,
+                          scrollController: _codeScrollController,
+                          highlighter: NoteHighlighter(),
+                          onChanged: (t) {
+                            // keep plain text up to date
+                            _textEditingController.value =
+                                _textEditingController.value.copyWith(
+                              text: t,
+                            );
+                          },
+                          maxLines: null,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.all(8),
+                          ),
+                          enableInteractiveSelection: true,
+                          // style: TextStyle(
+                          //   fontSize: 20.0,
+                          //   color: Colors.red,
+                          //   fontFamily: 'RobotoMono',
+                          // ),
+                          // style: Theme.of(context)
+                          //     .textTheme
+                          //     .subhead
+                          //     .copyWith(fontFamily: "RobotoMono"),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                // TODO: make some shorter way of querying this: https://pub.dev/packages/keyboard_visibility
-                bottom: MediaQuery.of(context).viewInsets.bottom == 0 ? 8.0 : 0,
+              Padding(
+                padding: EdgeInsets.only(
+                  // TODO: make some shorter way of querying this: https://pub.dev/packages/keyboard_visibility
+                  bottom:
+                      MediaQuery.of(context).viewInsets.bottom == 0 ? 8.0 : 0,
+                ),
+                child: NoteStyleToolbar(
+                  onNoteTokenPressed: (NoteToken noteToken) {
+                    var prefix = NoteTokenHelper.getName(noteToken) + " ";
+                    toggleReplacementLinePrefixes(prefix);
+                  },
+                ),
               ),
-              child: NoteStyleToolbar(
-                onNoteTokenPressed: (NoteToken noteToken) {
-                  var prefix = NoteTokenHelper.getName(noteToken) + " ";
-                  toggleReplacementLinePrefixes(prefix);
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   // TODO: decide if it's readonable to toggle the prefixes line by line, or if all should be toggled as one (ie. for prefixes which match an existing prefix)
