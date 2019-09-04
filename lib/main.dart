@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
         textTheme: Theme.of(context).textTheme.copyWith(
               subhead: TextStyle(color: Colors.white),
             ),
+        textSelectionColor: Color(0xFF264F78),
       ),
       home: NoteEditorScreen(),
     );
