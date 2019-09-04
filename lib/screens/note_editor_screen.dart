@@ -35,6 +35,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   // TODO: consider hiding the status bar in horizontal orientation
   // TODO: would be cool if pressing and holding the token buttons would enable that one and auto apply it to all newlines
+  // TODO: find a way to highlight the current line
+  // TODO: preserve indentation
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,13 +80,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                             color: Colors.transparent,
                           ),
                     ),
-                    // TODO: find a way to highlight the current line
-                    // TODO: preserve indentation
-                    // TODO: why are newlines appended to the text after every change?
-                    // TODO: why doesn't selection work?
-                    // TODO: can I get toggles working
                     // NOTE: this is really dumb, but for now works surprisingly well
-                    // TODO: if keeping this, must fix selected text colour, sync scrolling
                     IgnorePointer(
                       child: CodeTextField(
                         controller: _codeEditingController,
@@ -136,7 +132,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     );
   }
 
-  // TODO: test test test
   // TODO: decide if it's readonable to toggle the prefixes line by line, or if all should be toggled as one (ie. for prefixes which match an existing prefix)
   void toggleReplacementLinePrefixes(String prefix) {
     final value = _textEditingController.value;
@@ -150,7 +145,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     var newStart = start;
     var newEnd = end;
 
-    // TODO: starting from the end of the selection until past the start of the selection
     var index = end;
     while (index >= start) {
       // TODO: consider if we have CR's... (check how flutter on windows/web handles things) (regardless we need to be able to open files with CRLF) (actually, it should probablt just be fine, so long as we don't have just CR on it's own, fuckin' legacy macs)
