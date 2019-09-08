@@ -124,7 +124,6 @@ class NoteHighlighter implements CodeEditingValueHighlighterBase {
 
   @override
   Map<int, TextSpan> getSpanForPosition(TextSpan parent, int targetOffset) {
-    // TODO: implement getSpanForPosition
     return null;
   }
 
