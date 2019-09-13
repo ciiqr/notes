@@ -138,4 +138,16 @@ class NoteHighlighter implements CodeEditingValueHighlighterBase {
     return a.value.toPlainText() == b.value.toPlainText() &&
         (a.selection != b.selection || a.composing != b.composing);
   }
+
+  @override
+  CodeEditingValue addTextRemotely(CodeEditingValue oldValue, String newText) {
+    // TODO: implement addTextRemotely
+    return null;
+  }
+
+  @override
+  CodeEditingValue updateStyle(CodeEditingValue value) {
+    // TODO: implement updateStyle
+    return null;
+  }
 }
