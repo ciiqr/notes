@@ -1,6 +1,8 @@
 # notes
 
-![](https://github.com/ciiqr/notes/workflows/Build/badge.svg)
+[<img src="https://github.com/ciiqr/notes/workflows/Build/badge.svg">](https://github.com/ciiqr/notes/actions?query=workflow%3ABuild)
+
+
 
 A new Flutter project.
 
