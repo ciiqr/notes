@@ -1,5 +1,7 @@
 # notes
 
+![](https://github.com/ciiqr/notes/workflows/Build/badge.svg)
+
 A new Flutter project.
 
 ## Getting Started
